@@ -1,3 +1,6 @@
+# settings.py
+# Defines the environment variables of the server.
+
 """
 Django settings for backend project.
 
@@ -10,45 +13,31 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+# Imports
 from pathlib import Path
-from datetime import timedelta
 from dotenv import load_dotenv
-import os
 
+# Loads the variables from the .env file into the environment.
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+# Used for the encrypting the data between the server and the client.
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-$*&p@8dj-k+e#&!$m(capij9+p!!iz159$ny2z&-1+1!)2=e+)"
 
+# Determiens whether or not Django displays detailed error pages.
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Determiens the hosts that can access the server.
 ALLOWED_HOSTS = ["*"]
 
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-}
-
-# Application definition
-
+# Sets which Django apps that will be used.
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -57,10 +46,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "api",
-    "rest_framework",
-    "corsheaders"
+    "corsheaders",
 ]
 
+# Sets the background tasks common to all requests.
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -69,11 +58,13 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware"
 ]
 
+# Sets the route file for urls to backend/urls.py.
 ROOT_URLCONF = "backend.urls"
 
+# Sets html templates for Django admin and error pages.
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -89,12 +80,13 @@ TEMPLATES = [
     },
 ]
 
+# Web Server Gateway Interface to handle HTTP requests.
 WSGI_APPLICATION = "backend.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Sets database configuration for application.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -102,10 +94,8 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -121,28 +111,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+# Basic time and language settings.
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWS_CREDENTIALS = True

@@ -1,3 +1,6 @@
+# urls.py
+# Determines the path of the the urls in the project.
+
 """
 URL configuration for backend project.
 
@@ -14,9 +17,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+# Imports
 from django.contrib import admin
 from django.urls import path, include
 
+# URL connects link to api/urls.py.
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),

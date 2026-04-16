@@ -1,10 +1,9 @@
-# api/views.py
+# views.py
 
-import joblib
 import numpy as np
-from pathlib import Path
-from skimage import io, transform, feature
-from skimage.color import rgb2gray
+import tensorflow as tf
+from tensorflow.keras.applications.efficientnet import preprocess_input
+from tensorflow.keras.preprocessing import image as keras_image
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,90 +11,98 @@ from rest_framework.permissions import AllowAny
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.conf import settings
+from pathlib import Path
+import csv
 
 
 # ---------------------------------------------------------
-# Load model + label encoder once at server startup
+# Load model + species list
 # ---------------------------------------------------------
 
-# BASE_DIR = folder containing manage.py
-BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = settings.BASE_DIR / "static" / "native_invasive_classifier.keras"
+CSV_PATH = settings.BASE_DIR / "static" / "training_data.csv"
 
-MODEL_PATH = BASE_DIR / "model.pkl"
-ENCODER_PATH = BASE_DIR / "label_encoder.pkl"
+model = tf.keras.models.load_model(MODEL_PATH)
 
-clf = None
-le = None
+# Load species names from CSV
+species_list = []
+with open(CSV_PATH, "r") as f:
+    reader = csv.reader(f)
+    for row in reader:
+        if len(row) >= 1:
+            species = row[0].strip()
+            if species not in species_list:
+                species_list.append(species)
 
-try:
-    clf = joblib.load(MODEL_PATH)
-    le = joblib.load(ENCODER_PATH)
-    print("Model and label encoder loaded successfully.")
-except Exception as e:
-    print("Error loading model or label encoder:", e)
+IMG_SIZE = (300, 300)
 
 
 # ---------------------------------------------------------
-# Helper function: classify an uploaded image
+# Prediction function
 # ---------------------------------------------------------
 
-def predict_image(path, model, label_encoder, target_size=(128, 128)):
+def predict_image(path):
     try:
-        img = io.imread(path)
+        img = keras_image.load_img(path, target_size=IMG_SIZE)
+        img_array = keras_image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
 
-        if img.ndim == 3:
-            img = rgb2gray(img)
+        species_pred, status_pred = model.predict(img_array)
 
-        img_resized = transform.resize(img, target_size, anti_aliasing=True)
+        # Species
+        species_idx = int(np.argmax(species_pred[0]))
+        species_name = species_list[species_idx]
+        species_conf = float(np.max(species_pred[0]))
 
-        hog = feature.hog(
-            img_resized,
-            orientations=9,
-            pixels_per_cell=(8, 8),
-            cells_per_block=(2, 2),
-            block_norm="L2-Hys"
-        )
+        # Native / Invasive
+        invasive_prob = float(status_pred[0][0])
+        status = "INVASIVE" if invasive_prob > 0.5 else "NATIVE"
 
-        pred = model.predict([hog])[0]
-        prob = model.predict_proba([hog])[0]
-
-        class_name = label_encoder.inverse_transform([pred])[0]
-        confidence = float(np.max(prob))
-
-        return class_name, confidence
+        return species_name, species_conf, status, invasive_prob
 
     except Exception as e:
-        print("Prediction error:", e)
-        return None, None
+        print(f"Prediction error: {e}")
+        return None, None, None, None
 
 
 # ---------------------------------------------------------
-# API endpoint: /api/classify/
+# API endpoint
 # ---------------------------------------------------------
 
 class ClassifyPlantView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        if clf is None or le is None:
+        if model is None:
             return Response({"error": "Model not loaded"}, status=500)
 
         image_file = request.FILES.get("image")
         if not image_file:
             return Response({"error": "No image uploaded"}, status=400)
 
+        # Save temporary file
         temp_path = default_storage.save(
             "temp_upload.jpg",
             ContentFile(image_file.read())
         )
         full_path = default_storage.path(temp_path)
 
-        class_name, confidence = predict_image(full_path, clf, le)
+        species, species_conf, status, status_conf = predict_image(full_path)
 
-        if class_name is None:
+        # Clean up
+        try:
+            default_storage.delete(temp_path)
+        except Exception:
+            pass
+
+        if species is None:
             return Response({"error": "Could not classify image"}, status=500)
 
         return Response({
-            "class": class_name,
-            "confidence": confidence
+            "species": species,
+            "species_confidence": species_conf,
+            "status": status,
+            "status_confidence": status_conf
         })
