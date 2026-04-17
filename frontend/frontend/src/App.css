@@ -8,7 +8,7 @@
 html, body, #root {
   width: 100%;
   min-height: 100%;
-  overflow-x: hidden; /* Critical fix */
+  overflow-x: hidden;
 }
 
 html {
@@ -147,6 +147,11 @@ button {
   font-size: 1rem;
 }
 
+.footerText a {
+  color: blue;
+  text-decoration: underline;
+}
+
 /* RESPONSIVE FIXES */
 @media (max-width: 480px) {
   .card {
@@ -158,19 +163,19 @@ button {
   }
 }
 
+/* NAVBAR */
 .nav {
   display: flex;
   align-items: center;
-
   padding: 1rem 3rem;
-  background-color: #006622; /* green theme */
+  background-color: #006622;
   color: white;
 }
 
 .nav img {
-  height: 6rem;   /* scales with root font size */
+  height: 6rem;
   width: auto;
-  padding-right: 2rem
+  padding-right: 2rem;
 }
 
 .nav h1 {
@@ -184,9 +189,54 @@ button {
   font-size: 1.5rem;
 }
 
-.footerText a {
-  color: blue;
-  text-decoration: underline;
+/* 🌿 SERVER STATUS BADGES */
+.serverStatus {
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin: 10px auto;
+  width: fit-content;
+  font-weight: bold;
 }
 
+.serverStatus.loading {
+  background: #fff3cd;
+  color: #856404;
+}
 
+.serverStatus.ready {
+  background: #d4edda;
+  color: #155724;
+}
+
+.serverStatus.error {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* 🌿 RETRY BUTTON */
+.retryButton {
+  margin-left: 10px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.retryButton:hover {
+  background: #0056b3;
+}
+
+/* 🌿 COLOR-CODED STATUS */
+.statusNative {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.statusInvasive {
+  color: #c62828;
+  font-weight: bold;
+}

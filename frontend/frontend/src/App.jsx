@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import "./App.css";
 import logo from "./assets/logo.png";
@@ -11,7 +11,40 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ RESTORED ORIGINAL WORKING DRAG & DROP HANDLER
+  // 🌿 Backend status
+  const [serverReady, setServerReady] = useState(false);
+  const [serverLoading, setServerLoading] = useState(true);
+
+  // 🌿 Ping backend on load
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/ping/")
+      .then(() => {
+        setServerReady(true);
+        setServerLoading(false);
+      })
+      .catch(() => {
+        setServerReady(false);
+        setServerLoading(false);
+      });
+  }, []);
+
+  // 🌿 Retry button
+  const retryPing = () => {
+    setServerLoading(true);
+    setServerReady(false);
+
+    fetch("http://127.0.0.1:8000/api/ping/")
+      .then(() => {
+        setServerReady(true);
+        setServerLoading(false);
+      })
+      .catch(() => {
+        setServerReady(false);
+        setServerLoading(false);
+      });
+  };
+
+  // 🌿 RESTORED ORIGINAL DRAG & DROP HANDLER
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length === 0) return;
 
@@ -24,7 +57,7 @@ function App() {
     setLoading(false);
   }, []);
 
-  // ✅ RESTORED ORIGINAL DROPZONE CONFIG
+  // 🌿 RESTORED ORIGINAL DROPZONE CONFIG
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
@@ -59,6 +92,28 @@ function App() {
         <img src={logo} alt="logo" />
         <h1>Plant Identifier</h1>
       </div>
+
+      {/* 🌿 SERVER STATUS BADGES */}
+      {serverLoading && (
+        <div className="serverStatus loading">
+          Waking up backend…
+        </div>
+      )}
+
+      {!serverLoading && serverReady && (
+        <div className="serverStatus ready">
+          Server Ready
+        </div>
+      )}
+
+      {!serverLoading && !serverReady && (
+        <div className="serverStatus error">
+          Backend unreachable
+          <button className="retryButton" onClick={retryPing}>
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* DESCRIPTION */}
       <div className="section">
@@ -100,10 +155,13 @@ function App() {
               <h3 className="resultTitle">Result</h3>
 
               <p><strong>Species:</strong> {result.species}</p>
-              {/* <p><strong>Species Confidence:</strong> {(result.species_confidence * 100).toFixed(1)}%</p> */}
 
-              <p><strong>Status:</strong> {result.status}</p>
-              {/* <p><strong>Status Confidence:</strong> {(result.status_confidence * 100).toFixed(1)}%</p> */}
+              <p>
+                <strong>Status:</strong>{" "}
+                <span className={result.status === "invasive" ? "statusInvasive" : "statusNative"}>
+                  {result.status}
+                </span>
+              </p>
             </div>
           )}
 

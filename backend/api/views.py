@@ -14,6 +14,11 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from pathlib import Path
 import csv
+from django.http import JsonResponse
+
+def ping(request):
+    load_resources()
+    return JsonResponse({"status": "ok"})
 
 
 # ---------------------------------------------------------
