@@ -1,9 +1,9 @@
 # views.py
 
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.applications.efficientnet import preprocess_input
-from tensorflow.keras.preprocessing import image as keras_image
+import onnxruntime as ort
+from PIL import Image
+from tensorflow.keras.applications.efficientnet import preprocess_input   # <-- ADD THIS
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,19 +16,22 @@ from pathlib import Path
 import csv
 from django.http import JsonResponse
 
+
 def ping(request):
-    load_resources()
     return JsonResponse({"status": "ok"})
 
 
 # ---------------------------------------------------------
-# Load model + species list
+# Load ONNX model + species list
 # ---------------------------------------------------------
 
-MODEL_PATH = settings.BASE_DIR / "static" / "native_invasive_classifier.keras"
+MODEL_PATH = settings.BASE_DIR / "static" / "model.onnx"
 CSV_PATH = settings.BASE_DIR / "static" / "training_data.csv"
 
-model = tf.keras.models.load_model(MODEL_PATH)
+# Load ONNX model
+session = ort.InferenceSession(str(MODEL_PATH), providers=["CPUExecutionProvider"])
+input_name = session.get_inputs()[0].name
+output_names = [o.name for o in session.get_outputs()]
 
 # Load species names from CSV
 species_list = []
@@ -49,19 +52,23 @@ IMG_SIZE = (300, 300)
 
 def predict_image(path):
     try:
-        img = keras_image.load_img(path, target_size=IMG_SIZE)
-        img_array = keras_image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array = preprocess_input(img_array)
+        img = Image.open(path).convert("RGB")
+        img = img.resize(IMG_SIZE)
 
-        species_pred, status_pred = model.predict(img_array)
+        # 🔥 EfficientNet preprocessing (CRITICAL FIX)
+        arr = np.array(img).astype("float32")
+        arr = preprocess_input(arr)     # <-- FIXED
+        arr = np.expand_dims(arr, axis=0)
 
-        # Species
+        outputs = session.run(output_names, {input_name: arr})
+
+        species_pred = outputs[0]
+        status_pred = outputs[1]
+
         species_idx = int(np.argmax(species_pred[0]))
         species_name = species_list[species_idx]
         species_conf = float(np.max(species_pred[0]))
 
-        # Native / Invasive
         invasive_prob = float(status_pred[0][0])
         status = "INVASIVE" if invasive_prob > 0.5 else "NATIVE"
 
@@ -80,14 +87,10 @@ class ClassifyPlantView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        if model is None:
-            return Response({"error": "Model not loaded"}, status=500)
-
         image_file = request.FILES.get("image")
         if not image_file:
             return Response({"error": "No image uploaded"}, status=400)
 
-        # Save temporary file
         temp_path = default_storage.save(
             "temp_upload.jpg",
             ContentFile(image_file.read())
@@ -96,7 +99,6 @@ class ClassifyPlantView(APIView):
 
         species, species_conf, status, status_conf = predict_image(full_path)
 
-        # Clean up
         try:
             default_storage.delete(temp_path)
         except Exception:
