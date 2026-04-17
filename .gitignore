@@ -1,0 +1,10 @@
+backend/venv/
+*.keras
+*.h5
+*.pkl
+*.dylib
+*.so
+*.bin
+*.tflite
+__pycache__/
+*.log
