@@ -16,7 +16,7 @@ function App() {
 
   // Ping backend on load
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/ping/")
+    fetch("https://plantidentifierapp.onrender.com/api/ping/")
       .then(() => {
         setServerReady(true);
         setServerLoading(false);
@@ -31,7 +31,7 @@ function App() {
     setServerLoading(true);
     setServerReady(false);
 
-    fetch("http://127.0.0.1:8000/api/ping/")
+    fetch("https://plantidentifierapp.onrender.com/api/ping/")
       .then(() => {
         setServerReady(true);
         setServerLoading(false);
@@ -75,7 +75,7 @@ function App() {
     formData.append("image", file);
 
     axios
-      .post("http://127.0.0.1:8000/api/classify/", formData)
+      .post("https://plantidentifierapp.onrender.com/api/classify/", formData)
       .then((res) => setResult(res.data))
       .catch(() => setError("Failed to classify image."))
       .finally(() => setLoading(false));
