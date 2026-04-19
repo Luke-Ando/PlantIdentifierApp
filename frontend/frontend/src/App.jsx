@@ -11,11 +11,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🌿 Backend status
   const [serverReady, setServerReady] = useState(false);
   const [serverLoading, setServerLoading] = useState(true);
 
-  // 🌿 Ping backend on load
+  // Ping backend on load
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/ping/")
       .then(() => {
@@ -28,7 +27,6 @@ function App() {
       });
   }, []);
 
-  // 🌿 Retry button
   const retryPing = () => {
     setServerLoading(true);
     setServerReady(false);
@@ -44,7 +42,7 @@ function App() {
       });
   };
 
-  // 🌿 RESTORED ORIGINAL DRAG & DROP HANDLER
+  // Drag & Drop
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length === 0) return;
 
@@ -57,7 +55,6 @@ function App() {
     setLoading(false);
   }, []);
 
-  // 🌿 RESTORED ORIGINAL DROPZONE CONFIG
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
@@ -93,7 +90,7 @@ function App() {
         <h1>Plant Identifier</h1>
       </div>
 
-      {/* 🌿 SERVER STATUS BADGES */}
+      {/* SERVER STATUS */}
       {serverLoading && (
         <div className="serverStatus loading">
           Waking up backend…
@@ -128,7 +125,7 @@ function App() {
       <div className="section">
         <div className="card">
 
-          {/* DRAG & DROP — RESTORED */}
+          {/* DRAG & DROP */}
           <div
             {...getRootProps()}
             className={`dropzone ${isDragActive ? "active" : ""}`}
@@ -149,7 +146,7 @@ function App() {
 
           {error && <p className="error">{error}</p>}
 
-          {/* UPDATED AI RESULT DISPLAY */}
+          {/* RESULT */}
           {result && (
             <div className="resultBox">
               <h3 className="resultTitle">Result</h3>
@@ -157,11 +154,34 @@ function App() {
               <p><strong>Species:</strong> {result.species}</p>
 
               <p>
+                <strong>Confidence:</strong>{" "}
+                {(result.species_confidence * 100).toFixed(1)}%
+              </p>
+
+              <p>
                 <strong>Status:</strong>{" "}
-                <span className={result.status === "invasive" ? "statusInvasive" : "statusNative"}>
+                <span
+                  className={
+                    result.status === "INVASIVE"
+                      ? "statusInvasive"
+                      : "statusNative"
+                  }
+                >
                   {result.status}
                 </span>
               </p>
+
+              {/* TOP 3 */}
+              <div className="top3Box">
+                <h4>Top 3 Predictions</h4>
+                <ul>
+                  {result.top_3_species.map((sp, i) => (
+                    <li key={i}>
+                      {sp} — {(result.top_3_confidences[i] * 100).toFixed(1)}%
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
@@ -176,7 +196,8 @@ function App() {
             Created by Luke A — Powered by React & Django
           </p>
           <p className="footerText">
-            Classifier Built with Tensorflow and Trained on Images from the <a href="https://ala.org.au/">Atlas of Living Australia</a>
+            Classifier Built with Tensorflow and Trained on Images from the{" "}
+            <a href="https://ala.org.au/">Atlas of Living Australia</a>
           </p>
         </div>
       </div>
