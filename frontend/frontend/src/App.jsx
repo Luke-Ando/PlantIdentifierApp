@@ -5,6 +5,7 @@ import "./App.css";
 import logo from "./assets/logo.png";
 
 function App() {
+  const API_URL = import.meta.env.VITE_API_URL;
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
@@ -16,7 +17,7 @@ function App() {
 
   // Ping backend on load
   useEffect(() => {
-    fetch("https://plantidentifierapp.onrender.com/api/ping/")
+    fetch(`${API_URL}/ping/`)
       .then(() => {
         setServerReady(true);
         setServerLoading(false);
@@ -31,7 +32,7 @@ function App() {
     setServerLoading(true);
     setServerReady(false);
 
-    fetch("https://plantidentifierapp.onrender.com/api/ping/")
+    fetch(`${API_URL}/ping/`)
       .then(() => {
         setServerReady(true);
         setServerLoading(false);
@@ -75,7 +76,7 @@ function App() {
     formData.append("image", file);
 
     axios
-      .post("https://plantidentifierapp.onrender.com/api/classify/", formData)
+      .post(`${API_URL}/classify/`, formData)
       .then((res) => setResult(res.data))
       .catch(() => setError("Failed to classify image."))
       .finally(() => setLoading(false));
