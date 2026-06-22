@@ -3,11 +3,12 @@
 
 # Imports
 from django.urls import path
-from .views import ClassifyPlantView, ping
+from .views import ClassifyPlantView, MetricsView, ping
 
 # Returns the ClassifyPlantView as a function to be run when the
 # path is requested.
 urlpatterns = [
     path("ping/", ping),
     path("classify/", ClassifyPlantView.as_view(), name="classify"),
+    path("metrics/", MetricsView.as_view(), name="metrics")
 ]

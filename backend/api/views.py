@@ -1,4 +1,8 @@
 import numpy as np
+import time
+import logging
+
+from .metrics_service import metrics_service
 from PIL import Image, ImageOps
 import onnxruntime as ort
 
@@ -15,6 +19,7 @@ import csv
 import json
 import os
 
+logger = logging.getLogger(__name__)
 
 def ping(request):
     return JsonResponse({"status": "ok"})
@@ -88,12 +93,34 @@ with open(CSV_PATH, "r") as f:
 # ---------------------------------------------------------
 
 def predict_image(path):
+    preprocess_start = time.perf_counter()
+
     arr = preprocess_pillow(path)
+
+    preprocessing_ms = (
+        time.perf_counter()
+        - preprocess_start
+    ) * 1000
+
+    metrics_service.record_preprocessing(
+        preprocessing_ms
+    )
+
+    inference_start = time.perf_counter()
 
     species_pred, status_pred = session.run(
         output_names,
         {input_name: arr}
     )
+
+    inference_ms = (
+        time.perf_counter()
+        - inference_start
+    ) * 1000
+
+    metrics_service.record_inference(
+        inference_ms
+)
 
     # Top‑1 species
     species_idx = int(np.argmax(species_pred[0]))
@@ -124,9 +151,11 @@ def predict_image(path):
 # ---------------------------------------------------------
 
 class ClassifyPlantView(APIView):
+    
     permission_classes = [AllowAny]
 
     def post(self, request):
+        request_start = time.perf_counter()
         image_file = request.FILES.get("image")
         if not image_file:
             return Response({"error": "No image uploaded"}, status=400)
@@ -146,7 +175,23 @@ class ClassifyPlantView(APIView):
             top3_conf
         ) = predict_image(full_path)
 
+        latency_ms = (
+            time.perf_counter()
+            - request_start
+        ) * 1000
+
+        logger.info(
+            f"Prediction={species}, "
+            f"confidence={species_conf:.3f}, "
+            f"latency={latency_ms:.2f}ms"
+        )
+
         default_storage.delete(temp_path)
+
+
+        metrics_service.record_request(
+            latency_ms
+        )
 
         return Response({
             "species": species,
@@ -156,3 +201,13 @@ class ClassifyPlantView(APIView):
             "top_3_species": top3_species,
             "top_3_confidences": top3_conf
         })
+
+class MetricsView(APIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+
+        return Response(
+            metrics_service.get_metrics()
+        )
