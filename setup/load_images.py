@@ -1,99 +1,164 @@
-"""
-Creates a CSV file containing the training images.
-
-This script creates /backend/static/training_data.csv with the
-scientific name, the link to the image, whether its native or invasive
-a link to the associated Australian Native Plants Society (Australia)
-(ANPSA) information page. It selects the most common native plants and
-the worst invasive weeds in Australia up to a set limit, in a set 
-ratio.
-
-This tool is dependent on the ANPSA database. It can be downloaded at
-this link - https://anpsa.org.au/native-plant-profiles/. It also 
-requires a txt file, the scientific names of the invasive plants.
-
-This script requires that `galah` be installed within the Python 
-environment you are running this script in.
-
-This file can also be imported as a module and contains the following
-functions:
-
-    * get_plant_urls - returns the plant image links
-    * get_native_plants - returns native plant data
-    * get_invasive_plants - returns invasive plant data
-    * main - the main function of the script
-"""
+# load_images.py
 
 import galah
+import os
+import hashlib
+import requests
 
-def get_plant_urls(scientific_name, earliest_year, url_quantity):
-    """
-    Gets a list of URLs to images of the plant.
+# Constant Variables
+NATIVE_LIST_PATH = "static/native_list.txt"
+INVASIVE_LIST_PATH = "static/invasive_list.txt"
 
-    Retrieves the URLs to a set quantity of links from the Atlas of
-    Living Australia (ALA) database. If the quantity desired images, 
-    exceeds the number of images in the database a warning message will
-    be printed.
+MODEL_VERSION = "v1"
+TRAINING_LIST_FILE = "plant_list.txt"
 
-    Args:
-        scientific_name (str): the name of the plant
-        earliest_year (str): the earliest year that images of the
-        plant were taken
-        url_quantity (int): the numbers of image links
+TARGET_OCCURENCES = 500
+NUM_NATIVE = 30
+NUM_INVASIVE = 10
 
-    Returns:
-        list: a list URL links to images of the plant
+GALAH_REGISTERED_EMAIL = "luke@ando.id.au"
 
-    """
+# Configure Galah
+galah.galah_config(email=GALAH_REGISTERED_EMAIL)
 
-    plant_media = galah.atlas_media(
-        axa=scientific_name, 
-        filters="year>=" + earliest_year, 
-        progress_bar=True
+# Load plant lists
+native_plant_list = open(NATIVE_LIST_PATH).read().splitlines()
+invasive_plant_list = open(INVASIVE_LIST_PATH).read().splitlines()
+
+os.makedirs(f"model/{MODEL_VERSION}", exist_ok=True)
+
+species_years = {}
+
+
+# Count occurrences safely (FIXED)
+def get_species_occurence(name, current_year, target_occurrences):
+    year = current_year
+    total = 0
+
+    while total < target_occurrences and year > 1900:
+        try:
+            df = galah.atlas_occurrences(
+                taxa=name,
+                year=year
+            )
+
+            count = len(df)  # FIX: dataframe -> integer count
+            total += count
+
+        except Exception:
+            count = 0
+
+        year -= 1
+
+    return year + 1
+
+
+# Select top species, filter one per genus
+def get_top_species(plant_list, num_plants):
+    species_occurrences = {}
+
+    for plant in plant_list:
+        year = get_species_occurence(
+            plant,
+            2026,
+            TARGET_OCCURENCES
+        )
+        species_occurrences[plant] = year
+
+    # keep best per genus
+    best_by_genus = {}
+
+    for plant, year in species_occurrences.items():
+        genus = plant.split()[0]
+
+        if genus not in best_by_genus:
+            best_by_genus[genus] = (plant, year)
+        elif year > best_by_genus[genus][1]:
+            best_by_genus[genus] = (plant, year)
+
+    filtered = {p: y for p, y in best_by_genus.values()}
+
+    sorted_species = sorted(
+        filtered,
+        key=filtered.get,
+        reverse=True
     )
 
-    # Selects image links from the pandas.Dataframe object.
-    all_image_urls = plant_media['imageUrl'].tolist()
-    if len(all_image_urls > url_quantity):
-        print(f"WARNING: insufficient URLs for {scientific_name}")
-    
-    select_image_urls = all_image_urls[:url_quantity]
-
-    return select_image_urls
-
-def get_native_plants(
-        plant_spreadsheet,
-        earliest_year, 
-        plant_quantity, 
-        url_quantity):
-    """
-    Retrieves the data of the native plants.
-
-    Searches the ALA database for the most commonly occuring native 
-    plants found in the ANPSA spreadsheet and then collates the
-    data.
-
-    Args:
-        plant_database: the location of the ANPSA spreadsheet.
-        earliest_year: the earliest year that images of the
-        plant were taken
-        plant_quantity: the number of native plants collected
-        url_quantity: the number of images of each plant
-
-    Returns:
-        list[list]: a 2D list of the native plant images with their
-        scientific names, a list of image links of the plant a
-        "NATIVE" label and a link to corresponding ANPSA information 
-        page.
-
-    """
-
-    
+    return sorted_species[:num_plants], filtered
 
 
+def process_species(species_list, status, training_file):
+    for plant in species_list:
 
-# Get Native Plants
+        year = species_years[plant]
 
-# Get Invasive Plants
+        training_file.write(f"{plant},{year},{status}\n")
 
-# Main
+        try:
+            plant_media = galah.atlas_media(
+                taxa=plant
+            )
+
+            image_urls = plant_media["imageUrl"].dropna().tolist()
+            selected_urls = image_urls[:TARGET_OCCURENCES]
+
+        except Exception as e:
+            print(f"Failed media for {plant}: {e}")
+            continue
+
+        species_dir = os.path.join(
+            "../PlantIdentifier/cached_dataset",
+            plant.replace(" ", "_")
+        )
+
+        os.makedirs(species_dir, exist_ok=True)
+
+        downloaded = 0
+
+        for url in selected_urls:
+            try:
+                r = requests.get(url, timeout=10)
+                r.raise_for_status()
+
+                img = r.content
+
+                if len(img) < 2000:
+                    continue
+
+                filename = hashlib.md5(url.encode()).hexdigest() + ".jpg"
+                path = os.path.join(species_dir, filename)
+
+                if os.path.exists(path):
+                    continue
+
+                with open(path, "wb") as f:
+                    f.write(img)
+
+                downloaded += 1
+
+            except Exception:
+                continue
+
+        print(f"{plant}: downloaded {downloaded} images")
+
+
+def get_images(native_plants, invasive_plants, num_native, num_invasive):
+    global species_years
+
+    top_native, native_years = get_top_species(native_plants, num_native)
+    top_invasive, invasive_years = get_top_species(invasive_plants, num_invasive)
+
+    species_years = {**native_years, **invasive_years}
+
+    with open(f"model/{MODEL_VERSION}/{TRAINING_LIST_FILE}", "w") as f:
+        process_species(top_native, "NATIVE", f)
+        process_species(top_invasive, "INVASIVE", f)
+
+
+if __name__ == "__main__":
+    get_images(
+        native_plant_list,
+        invasive_plant_list,
+        NUM_NATIVE,
+        NUM_INVASIVE
+    )
