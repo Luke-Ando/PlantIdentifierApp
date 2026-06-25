@@ -146,7 +146,7 @@ LOGGING = {
 }
 
 # Prevents malicious access to the site.
-CORS_ALLOWED_ORIGINS = [os.environ.get("CLIENT_URL", "*")]
+CORS_ALLOWED_ORIGINS = ["*"]
 
 # Limits the amount of trafic for specific IP address.
 REST_FRAMEWORK = {
