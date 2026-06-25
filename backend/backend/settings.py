@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 # Sets the background tasks common to all requests.
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -59,7 +60,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware"
+    
 ]
 
 # Sets the route file for urls to backend/urls.py.
@@ -146,7 +147,7 @@ LOGGING = {
 }
 
 # Prevents malicious access to the site.
-CORS_ALLOWED_ORIGINS = ["*"]
+CORS_ALLOWED_ORIGINS = [os.environ.get("CLIENT_URL", "http://localhost:5173")]
 
 # Limits the amount of trafic for specific IP address.
 REST_FRAMEWORK = {
