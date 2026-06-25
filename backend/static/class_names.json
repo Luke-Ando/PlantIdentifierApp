@@ -1,0 +1,78 @@
+[
+  {
+    "species": "Bursaria spinosa",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Hardenbergia violacea",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Lomandra longifolia",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Epacris impressa",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Dodonaea viscosa",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Pimelea linifolia",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Banksia integrifolia",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Pandorea pandorana",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Chrysocephalum apiculatum",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Acacia dealbata",
+    "status": "NATIVE"
+  },
+  {
+    "species": "Nassella trichotoma",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Lantana camara",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Parthenium hysterophorus",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Echium plantagineum",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Opuntia robusta",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Alternanthera philoxeroides",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Ulex europaeus",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Cenchrus ciliaris",
+    "status": "INVASIVE"
+  },
+  {
+    "species": "Lolium rigidum",
+    "status": "INVASIVE"
+  }
+]

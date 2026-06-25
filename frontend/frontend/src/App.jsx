@@ -6,8 +6,10 @@ import logo from "./assets/logo.png";
 
 function App() {
   const API_URL = import.meta.env.VITE_API_URL;
+
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -26,7 +28,7 @@ function App() {
         setServerReady(false);
         setServerLoading(false);
       });
-  }, []);
+  }, [API_URL]);
 
   const retryPing = () => {
     setServerLoading(true);
@@ -139,7 +141,9 @@ function App() {
             </p>
           </div>
 
-          {preview && <img src={preview} alt="preview" className="preview" />}
+          {preview && (
+            <img src={preview} alt="preview" className="preview" />
+          )}
 
           <button onClick={uploadImage} className="button">
             {loading ? "Classifying..." : "Classify Plant"}
@@ -152,7 +156,9 @@ function App() {
             <div className="resultBox">
               <h3 className="resultTitle">Result</h3>
 
-              <p><strong>Species:</strong> {result.species}</p>
+              <p>
+                <strong>Species:</strong> {result.species}
+              </p>
 
               <p>
                 <strong>Confidence:</strong>{" "}
@@ -176,9 +182,11 @@ function App() {
               <div className="top3Box">
                 <h4>Top 3 Predictions</h4>
                 <ul>
-                  {result.top_3_species.map((sp, i) => (
+                  {result.top_3?.map((item, i) => (
                     <li key={i}>
-                      {sp} — {(result.top_3_confidences[i] * 100).toFixed(1)}%
+                      {item.species} —{" "}
+                      {(item.confidence * 100).toFixed(1)}%
+                      {" "}
                     </li>
                   ))}
                 </ul>
@@ -186,7 +194,9 @@ function App() {
             </div>
           )}
 
-          <p>Classifications are predictions only and are prone to errors.</p>
+          <p className="disclaimer">
+            Classifications are predictions only and are prone to errors.
+          </p>
         </div>
       </div>
 

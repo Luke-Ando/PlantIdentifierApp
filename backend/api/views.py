@@ -7,14 +7,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
-from .metrics_service import metrics_service
+from .services.metrics_service import metrics_service
 from .services.plant_classifier import (
     classifier_service
 )
 
 logger = logging.getLogger(__name__)
 
-
+# Used by frontend to test server accessibility.
 def ping(request):
     return JsonResponse({
         "status": "ok"
