@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 # Imports
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -27,15 +28,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # Used for the encrypting the data between the server and the client.
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-$*&p@8dj-k+e#&!$m(capij9+p!!iz159$ny2z&-1+1!)2=e+)"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-$*&p@8dj-k+e#&!$m(capij9+p!!iz159$ny2z&-1+1!)2=e+)")
 
 # Determiens whether or not Django displays detailed error pages.
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # Determiens the hosts that can access the server.
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [os.environ.get("HOST_URL", "*")]
 
 # Sets which Django apps that will be used.
 INSTALLED_APPS = [
@@ -120,7 +120,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_URL = "static/"
@@ -129,6 +128,7 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Send all the logs to the terminal.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -145,10 +145,11 @@ LOGGING = {
     },
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+# Prevents malicious access to the site.
+CORS_ALLOWED_ORIGINS = [os.environ.get("CLIENT_URL", "*")]
 
+# Limits the amount of trafic for specific IP address.
 REST_FRAMEWORK = {
-
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
     ],
