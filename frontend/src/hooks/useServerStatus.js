@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 export function useServerStatus() {
   const [serverReady, setServerReady] = useState(false);
   const [serverLoading, setServerLoading] = useState(true);
 
-  const ping = () => {
-    setServerLoading(true);
+  const API_URL = import.meta.env.VITE_API_URL;
 
-    fetch(`${API_URL}/ping/`)
-      .then(() => {
-        setServerReady(true);
-        setServerLoading(false);
-      })
-      .catch(() => {
-        setServerReady(false);
-        setServerLoading(false);
-      });
+  const ping = async () => {
+    console.log("🔵 API_URL:", API_URL);
+
+    try {
+      setServerLoading(true);
+
+      const res = await fetch(`${API_URL}/ping/`);
+
+      console.log("🟡 ping status:", res.status);
+
+      if (!res.ok) throw new Error("Server not OK");
+
+      setServerReady(true);
+    } catch (err) {
+      console.error("🔴 ping failed:", err);
+
+      setServerReady(false);
+    } finally {
+      setServerLoading(false);
+    }
   };
 
   useEffect(() => {
