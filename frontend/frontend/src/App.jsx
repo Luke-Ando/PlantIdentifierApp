@@ -1,12 +1,15 @@
-import axios from "axios";
-import { useState, useCallback, useEffect } from "react";
-import { useDropzone } from "react-dropzone";
+import { useState } from "react";
 import "./App.css";
-import logo from "./assets/logo.png";
+
+import Navbar from "./components/Navbar";
+import ImageUploader from "./components/ImageUploader";
+import ResultBox from "./components/ResultBox";
+import Footer from "./components/Footer";
+
+import { useServerStatus } from "./hooks/useServerStatus";
+import { classifyImage } from "./services/api";
 
 function App() {
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
@@ -14,55 +17,11 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [serverReady, setServerReady] = useState(false);
-  const [serverLoading, setServerLoading] = useState(true);
-
-  // Ping backend on load
-  useEffect(() => {
-    fetch(`${API_URL}/ping/`)
-      .then(() => {
-        setServerReady(true);
-        setServerLoading(false);
-      })
-      .catch(() => {
-        setServerReady(false);
-        setServerLoading(false);
-      });
-  }, [API_URL]);
-
-  const retryPing = () => {
-    setServerLoading(true);
-    setServerReady(false);
-
-    fetch(`${API_URL}/ping/`)
-      .then(() => {
-        setServerReady(true);
-        setServerLoading(false);
-      })
-      .catch(() => {
-        setServerReady(false);
-        setServerLoading(false);
-      });
-  };
-
-  // Drag & Drop
-  const onDrop = useCallback((acceptedFiles) => {
-    if (acceptedFiles.length === 0) return;
-
-    const f = acceptedFiles[0];
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-
-    setResult(null);
-    setError(null);
-    setLoading(false);
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/*": [] },
-    multiple: false
-  });
+  const {
+    serverReady,
+    serverLoading,
+    retryPing,
+  } = useServerStatus();
 
   const uploadImage = () => {
     if (!file) {
@@ -74,11 +33,7 @@ function App() {
     setError(null);
     setResult(null);
 
-    const formData = new FormData();
-    formData.append("image", file);
-
-    axios
-      .post(`${API_URL}/classify/`, formData)
+    classifyImage(file)
       .then((res) => setResult(res.data))
       .catch(() => setError("Failed to classify image."))
       .finally(() => setLoading(false));
@@ -87,35 +42,8 @@ function App() {
   return (
     <div className="page">
 
-      {/* NAVBAR */}
-      <div className="nav">
-        <img src={logo} alt="logo" />
-        <h1>Plant Identifier</h1>
-      </div>
+      <Navbar />
 
-      {/* SERVER STATUS */}
-      {serverLoading && (
-        <div className="serverStatus loading">
-          Waking up backend…
-        </div>
-      )}
-
-      {!serverLoading && serverReady && (
-        <div className="serverStatus ready">
-          Server Ready
-        </div>
-      )}
-
-      {!serverLoading && !serverReady && (
-        <div className="serverStatus error">
-          Backend unreachable
-          <button className="retryButton" onClick={retryPing}>
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* DESCRIPTION */}
       <div className="section">
         <div className="inner">
           <p className="descriptionText">
@@ -124,94 +52,28 @@ function App() {
         </div>
       </div>
 
-      {/* MAIN CARD */}
       <div className="section">
-        <div className="card">
 
-          {/* DRAG & DROP */}
-          <div
-            {...getRootProps()}
-            className={`dropzone ${isDragActive ? "active" : ""}`}
-          >
-            <input {...getInputProps()} />
-            <p>
-              {isDragActive
-                ? "Drop the Image Here"
-                : "Drag & Drop an Image Here or Tap to Select"}
-            </p>
-          </div>
+        <ImageUploader
+          setFile={setFile}
+          preview={preview}
+          setPreview={setPreview}
+          setResult={setResult}
+          setError={setError}
+          setLoading={setLoading}
+          uploadImage={uploadImage}
+          loading={loading}
+          serverLoading={serverLoading}
+          serverReady={serverReady}
+          retryPing={retryPing}
+          error={error}
+        >
+          <ResultBox result={result} />
+        </ImageUploader>
 
-          {preview && (
-            <img src={preview} alt="preview" className="preview" />
-          )}
-
-          <button onClick={uploadImage} className="button">
-            {loading ? "Classifying..." : "Classify Plant"}
-          </button>
-
-          {error && <p className="error">{error}</p>}
-
-          {/* RESULT */}
-          {result && (
-            <div className="resultBox">
-              <h3 className="resultTitle">Result</h3>
-
-              <p>
-                <strong>Species:</strong> {result.species}
-              </p>
-
-              <p>
-                <strong>Confidence:</strong>{" "}
-                {(result.species_confidence * 100).toFixed(1)}%
-              </p>
-
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
-                  className={
-                    result.status === "INVASIVE"
-                      ? "statusInvasive"
-                      : "statusNative"
-                  }
-                >
-                  {result.status}
-                </span>
-              </p>
-
-              {/* TOP 3 */}
-              <div className="top3Box">
-                <h4>Top 3 Predictions</h4>
-                <ul>
-                  {result.top_3?.map((item, i) => (
-                    <li key={i}>
-                      {item.species} —{" "}
-                      {(item.confidence * 100).toFixed(1)}%
-                      {" "}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          <p className="disclaimer">
-            Classifications are predictions only and are prone to errors.
-          </p>
-        </div>
       </div>
 
-      {/* FOOTER */}
-      <div className="footer">
-        <div className="inner">
-          <p className="footerText">
-            Created by Luke A — Powered by React & Django
-          </p>
-          <p className="footerText">
-            Classifier Built with Tensorflow and Trained on Images from the{" "}
-            <a href="https://ala.org.au/">Atlas of Living Australia</a>
-          </p>
-        </div>
-      </div>
+      <Footer />
 
     </div>
   );

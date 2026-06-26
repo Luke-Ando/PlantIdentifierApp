@@ -1,29 +1,71 @@
-/* RESET */
+/* =========================
+   BRAND COLOURS
+========================= */
+:root {
+  --primary: #00b83d;
+  --primary-dark: #008f33;
+
+  --navbar: #1f4d3a;
+  --footer: #163728;
+
+  --background-top: #eef7ea;
+  --background-middle: #dff2d8;
+
+  --card: #f7fcf5;
+  --card-border: #d7ead3;
+
+  --text: #1f2937;
+  --muted: #5b6b63;
+}
+
+.descriptionText {
+  color: var(--text);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+/* =========================
+   RESET
+========================= */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
 }
 
-/* Prevent mobile browsers from auto‑inverting colors */
+/* =========================
+   TYPOGRAPHY (UPGRADED)
+========================= */
 html {
-  font-size: clamp(14px, 1.2vw, 20px);
-  font-family: Arial, sans-serif;
-  color-scheme: light; /* ← IMPORTANT FIX */
+  font-size: clamp(14px, 1.1vw, 18px);
+  font-family: "Inter", "Segoe UI", system-ui, Arial, sans-serif;
+  color-scheme: light;
 }
 
 body {
-  background: #daffb3;
-  color: #000; /* Ensure default text is black */
+  background: linear-gradient(
+    180deg,
+    var(--background-top) 0%,
+    var(--background-middle) 50%,
+    var(--background-top) 100%
+  );
+
+  color: var(--text);
+  line-height: 1.6;
 }
 
-/* GLOBAL ELEMENTS */
+/* =========================
+   GLOBAL ELEMENTS
+========================= */
 img {
   max-width: 100%;
   height: auto;
@@ -31,69 +73,109 @@ img {
 }
 
 button {
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+  font-family: inherit;
 }
 
-/* PAGE LAYOUT */
+/* =========================
+   PAGE LAYOUT
+========================= */
 .page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  animation: fadeIn 0.35s ease;
 }
 
-/* NAVBAR + FOOTER */
-.navbar {
-  width: 100%;
-  background: #2f5d3a;
-  padding: 2rem 0;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+   NAVBAR + FOOTER
+========================= */
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 1rem 3rem;
+
+  background: var(--navbar);
   color: white;
+
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav img {
+  height: 5.5rem;
+  padding-right: 2rem;
+}
+
+.nav h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .footer {
   width: 100%;
-  background: #006622;
-  padding: 2rem 0;
+  background: var(--footer);
+  padding: 1.5rem 0;
   margin-top: auto;
   color: white;
 }
 
-/* CENTERED SECTIONS */
+/* =========================
+   CENTERED SECTIONS
+========================= */
 .section {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 2rem 0;
+  padding: 2.5rem 0;
 }
 
 .inner {
   width: 100%;
   max-width: 900px;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   margin: 0 auto;
   text-align: center;
 }
 
-/* CARD */
+/* =========================
+   CARD (refined)
+========================= */
 .card {
   width: 100%;
-  max-width: 500px;
-  background: white;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1);
+  max-width: 600px;
+
+  background: var(--card);
+  border: 1px solid var(--card-border);
+
+  padding: 2.3rem;
+  border-radius: 1.25rem;
+
+  box-shadow:
+    0 12px 32px rgba(34, 84, 56, 0.10),
+    0 2px 10px rgba(34, 84, 56, 0.05);
+
   text-align: center;
-  box-sizing: border-box;
-  color: #000; /* Ensure text inside card is black */
+  color: var(--text);
 }
 
-/* DROPZONE */
+/* =========================
+   DROPZONE
+========================= */
 .dropzone {
-  border: 2px dashed #ccc;
+  border: 2px dashed #7fbf85;
+  background: #ffffff;
+
   border-radius: 1rem;
   padding: 3rem 1rem;
   margin-bottom: 1.5rem;
-  font-size: 1rem;
+
   min-height: 120px;
 
   display: flex;
@@ -101,197 +183,174 @@ button {
   justify-content: center;
 
   text-align: center;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
 
-  color: #000 !important; /* ← FIX: force visible text on mobile */
+  color: var(--muted);
+  transition: all 0.25s ease;
 }
 
-.dropzone p {
-  color: #000 !important; /* ← FIX */
+.dropzone:hover {
+  border-color: var(--primary);
+  background: #f1faee;
+  transform: translateY(-2px);
 }
 
-/* PREVIEW IMAGE */
+/* =========================
+   PREVIEW
+========================= */
 .preview {
   width: 100%;
-  max-width: 100%;
   border-radius: 1rem;
   margin-bottom: 1.5rem;
   object-fit: cover;
 }
 
-/* BUTTON */
+/* =========================
+   BUTTONS (clean hierarchy)
+========================= */
 .button {
-  background: #00b83d;
+  background: var(--primary);
   color: white;
+
   padding: 1rem;
   border: none;
-  border-radius: 0.8rem;
-  font-size: 1.1rem;
+  border-radius: 0.9rem;
+
+  font-size: 1.05rem;
+  font-weight: 600;
+
   width: 100%;
   margin-bottom: 1rem;
 }
 
-/* ERROR MESSAGE */
-.error {
-  color: red;
-  margin-top: 1rem;
+.button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
-/* RESULT BOX */
-.resultBox {
-  background: #eef7ee;
+.waitingButton,
+.retryButtonState,
+.button {
+  width: 100%;
   padding: 1rem;
+  border-radius: 0.8rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.waitingButton {
+  background: #e9f5ec;
+  color: #5b6b63;
+  text-align: center;
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.retryButtonState {
+  background: #c62828;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.retryButtonState:hover {
+  background: #a61d1d;
+}
+
+/* =========================
+   ERROR
+========================= */
+.error {
+  color: #b3261e;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+/* =========================
+   RESULT BOX
+========================= */
+.resultBox {
+  background: #edf8ea;
+  border: 1px solid #d8ebd4;
+
+  padding: 1.25rem;
   border-radius: 1rem;
   margin-top: 1rem;
-  color: #000 !important; /* ← FIX: force readable text */
-}
 
-.resultBox p,
-.resultBox li,
-.resultTitle,
-.barLabel {
-  color: #000 !important; /* ← FIX */
+  color: var(--text);
 }
 
 .resultTitle {
-  margin-bottom: 0.5rem;
-  font-weight: bold;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
 }
 
-/* FOOTER TEXT */
-.footerText {
-  font-size: 1rem;
-}
-
-.footerText a {
-  color: blue;
-  text-decoration: underline;
-}
-
-/* RESPONSIVE FIXES */
-@media (max-width: 480px) {
-  .card {
-    padding: 1.5rem;
-  }
-
-  .dropzone {
-    padding: 2rem 1rem;
-  }
-}
-
-/* NAVBAR */
-.nav {
-  display: flex;
-  align-items: center;
-  padding: 1rem 3rem;
-  background-color: #006622;
-  color: white;
-}
-
-.nav img {
-  height: 6rem;
-  width: auto;
-  padding-right: 2rem;
-}
-
-.nav h1 {
-  font-size: 2rem;
-  margin: 0;
-  font-weight: 600;
-}
-
-.descriptionText {
-  color: black;
-  font-size: 1.5rem;
-}
-
-/* 🌿 SERVER STATUS BADGES */
+/* =========================
+   SERVER STATUS (soft pills)
+========================= */
 .serverStatus {
   text-align: center;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: 999px;
   margin: 10px auto;
   width: fit-content;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .serverStatus.loading {
   background: #fff3cd;
-  color: #856404;
+  color: #7a5b00;
 }
 
 .serverStatus.ready {
   background: #d4edda;
-  color: #155724;
+  color: #1f7a3a;
 }
 
 .serverStatus.error {
   background: #f8d7da;
-  color: #721c24;
+  color: #7a1f1f;
 }
 
-/* 🌿 RETRY BUTTON */
-.retryButton {
-  margin-left: 10px;
-  padding: 4px 10px;
-  border: none;
-  border-radius: 6px;
-  background: #007bff;
-  color: white;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.retryButton:hover {
-  background: #0056b3;
-}
-
-/* 🌿 COLOR-CODED STATUS */
+/* =========================
+   STATUS
+========================= */
 .statusNative {
-  color: #2e7d32;
-  font-weight: bold;
+  color: var(--primary-dark);
+  font-weight: 700;
 }
 
 .statusInvasive {
   color: #c62828;
-  font-weight: bold;
+  font-weight: 700;
 }
 
-.warning {
-  color: #b36b00;
-  background: #fff4d6;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
+/* =========================
+   TOP 3
+========================= */
 .top3Box {
-  margin-top: 16px;
+  margin-top: 1rem;
 }
 
 .top3Box ul {
   list-style: none;
   padding-left: 0;
+  color: var(--muted);
 }
 
-.barOuter {
-  width: 100%;
-  background: #e6e6e6;
-  height: 8px;
-  border-radius: 4px;
-  margin-top: 4px;
+/* =========================
+   FOOTER TEXT
+========================= */
+.footerText {
+  font-size: 0.9rem;
+  opacity: 0.95;
 }
 
-.barInner {
-  height: 8px;
-  background: #4caf50;
-  border-radius: 4px;
+.footerText a {
+  color: #9ee6a3;
+  text-decoration: none;
 }
 
-.barLabel {
-  font-size: 14px;
-  margin-bottom: 2px;
+.footerText a:hover {
+  text-decoration: underline;
 }
