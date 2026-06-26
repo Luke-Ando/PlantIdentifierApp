@@ -8,3 +8,4 @@ backend/venv/
 *.tflite
 __pycache__/
 *.log
+frontend/node_modules/
