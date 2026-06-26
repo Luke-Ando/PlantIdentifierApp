@@ -14,13 +14,13 @@ export function useServerStatus() {
 
       const res = await fetch(`${API_URL}/ping/`);
 
-      console.log("🟡 ping status:", res.status);
+      console.log("Ping status:", res.status);
 
       if (!res.ok) throw new Error("Server not OK");
 
       setServerReady(true);
     } catch (err) {
-      console.error("🔴 ping failed:", err);
+      console.error("Ping failed:", err);
 
       setServerReady(false);
     } finally {
