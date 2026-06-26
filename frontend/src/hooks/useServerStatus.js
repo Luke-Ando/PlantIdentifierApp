@@ -5,18 +5,29 @@ export function useServerStatus() {
   const [serverLoading, setServerLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL;
-  const didRun = useRef(false);
+
+  const ran = useRef(false);
 
   const ping = async () => {
+    console.log("API_URL =", API_URL);
+
+    if (!API_URL) {
+      console.error("VITE_API_URL is missing");
+      setServerLoading(false);
+      setServerReady(false);
+      return;
+    }
+
     try {
       setServerLoading(true);
 
       const res = await fetch(`${API_URL}/ping/`);
 
-      if (!res.ok) throw new Error("Ping failed");
+      console.log("ping status:", res.status);
 
-      setServerReady(true);
+      setServerReady(res.ok);
     } catch (err) {
+      console.error("ping failed:", err);
       setServerReady(false);
     } finally {
       setServerLoading(false);
@@ -24,9 +35,8 @@ export function useServerStatus() {
   };
 
   useEffect(() => {
-    if (didRun.current) return; // prevents StrictMode double run issues
-    didRun.current = true;
-
+    if (ran.current) return;
+    ran.current = true;
     ping();
   }, []);
 
