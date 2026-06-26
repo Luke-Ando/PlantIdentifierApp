@@ -1,27 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useServerStatus() {
   const [serverReady, setServerReady] = useState(false);
   const [serverLoading, setServerLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const didRun = useRef(false);
 
   const ping = async () => {
-    console.log("🔵 API_URL:", API_URL);
-
     try {
       setServerLoading(true);
 
       const res = await fetch(`${API_URL}/ping/`);
 
-      console.log("Ping status:", res.status);
-
-      if (!res.ok) throw new Error("Server not OK");
+      if (!res.ok) throw new Error("Ping failed");
 
       setServerReady(true);
     } catch (err) {
-      console.error("Ping failed:", err);
-
       setServerReady(false);
     } finally {
       setServerLoading(false);
@@ -29,12 +24,11 @@ export function useServerStatus() {
   };
 
   useEffect(() => {
+    if (didRun.current) return; // prevents StrictMode double run issues
+    didRun.current = true;
+
     ping();
   }, []);
 
-  return {
-    serverReady,
-    serverLoading,
-    retryPing: ping,
-  };
+  return { serverReady, serverLoading, retryPing: ping };
 }
