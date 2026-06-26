@@ -18,9 +18,9 @@ export default function ResultBox({ result }) {
         <strong>Status:</strong>{" "}
         <span
           className={
-            result.status === "INVASIVE"
-              ? "statusInvasive"
-              : "statusNative"
+            result.status === "NATIVE"
+              ? "statusNative"
+              : "statusInvasive"
           }
         >
           {result.status}

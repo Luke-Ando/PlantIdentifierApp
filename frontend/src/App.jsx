@@ -2,14 +2,14 @@ import { useState } from "react";
 import "./App.css";
 
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import ImageUploader from "./components/ImageUploader";
 import ResultBox from "./components/ResultBox";
-import Footer from "./components/Footer";
 
 import { useServerStatus } from "./hooks/useServerStatus";
 import { classifyImage } from "./services/api";
 
-function App() {
+export default function App() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
@@ -41,19 +41,18 @@ function App() {
 
   return (
     <div className="page">
-
       <Navbar />
 
       <div className="section">
         <div className="inner">
           <p className="descriptionText">
-            An AI image classifier built to identify native & invasive Australian plants.
+            An AI image classifier built to identify native &amp; invasive
+            Australian plants.
           </p>
         </div>
       </div>
 
       <div className="section">
-
         <ImageUploader
           setFile={setFile}
           preview={preview}
@@ -70,13 +69,9 @@ function App() {
         >
           <ResultBox result={result} />
         </ImageUploader>
-
       </div>
 
       <Footer />
-
     </div>
   );
 }
-
-export default App;
